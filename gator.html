@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escape Room: Código Realidad</title>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto+Mono:wght@400;700&display=swap');
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Roboto Mono', monospace;
+            background-color: #0a0c10 !important;
+            color: #f0f4f8 !important;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .vault-banner {
+            width: 100%;
+            background-color: #10141d !important;
+            border-bottom: 3px solid #00e5ff;
+            padding: 20px 10px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .vault-banner h1 {
+            font-family: 'Orbitron', sans-serif;
+            color: #00e5ff !important;
+            margin: 0;
+            font-size: 1.6rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
+        }
+
+        .vault-banner .subtitle {
+            font-size: 0.85rem;
+            color: #39ff14 !important;
+            margin-top: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 600px;
+            padding: 15px;
+            margin-top: 10px;
+            margin-bottom: 30px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-panel {
+            background-color: #12161c !important;
+            border: 1px solid #00e5ff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            position: relative;
+            color: #f0f4f8 !important;
+        }
+
+        h2 {
+            font-family: 'Orbitron', sans-serif;
+            color: #00e5ff !important;
+            font-size: 1.2rem;
+            border-bottom: 1px solid #00e5ff;
+            padding-bottom: 8px;
+            margin-top: 0;
+        }
+
+        p, li, td, th {
+            line-height: 1.6;
+            font-size: 0.95rem;
+            color: #d1d9e6 !important;
+        }
+
+        .highlight-box {
+            background-color: #07090d !important;
+            border-left: 4px solid #39ff14;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 6px 6px 0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #00e5ff !important;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 14px;
+            background-color: #07090d !important;
+            border: 1px solid #00e5ff;
+            border-radius: 6px;
+            color: #ffffff !important;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus, input[type="number"]:focus {
+            outline: none;
+            border-color: #39ff14;
+            box-shadow: 0 0 10px rgba(57, 255, 20, 0.3);
+        }
+
+        .btn-action {
+            width: 100%;
+            padding: 15px;
+            background-color: #10141d !important;
+            border: 2px solid #39ff14;
+            color: #39ff14 !important;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .btn-action:hover:not(:disabled) {
+            background-color: #39ff14 !important;
+            color: #0a0c10 !important;
+            box-shadow: 0 0 15px rgba(57, 255, 20, 0.6);
+        }
+
+        .game-screen { display: none; }
+        .active-screen { display: block !important; }
+
+        .hud-timer {
+            text-align: center;
+            font-family: 'Orbitron', sans-serif;
+            color: #ff3333 !important;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(255, 51, 51, 0.3);
+        }
+
+        .vault-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .vault-input {
+            text-align: center;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem !important;
+            padding: 10px 0 !important;
+            color: #39ff14 !important;
+            background-color: #07090d !important;
+        }
+
+        .status-msg {
+            padding: 12px;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: bold;
+            margin-top: 15px;
+            display: none;
+            font-size: 0.9rem;
+        }
+
+        .status-msg.visible-error { display: block !important; background-color: #3a1a1a !important; border: 1px solid #ff3333; color: #ff8888 !important; }
+        .status-msg.visible-success { display: block !important; background-color: #1a3a1a !important; border: 1px solid #39ff14; color: #a3ff88 !important; }
+
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 0.85rem;
+            background-color: #12161c !important;
+        }
+
+        .info-table th, .info-table td {
+            border: 1px solid #00e5ff;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .info-table th { background-color: #10141d !important; color: #00e5ff !important; }
+
+        .teacher-box {
+            margin-top: 20px;
+            background-color: #10141d !important;
+            border: 1px dashed #00e5ff;
+            padding: 15px;
+            border-radius: 6px;
+        }
+
+        .stage-illustration {
+            width: 100%;
+            height: 140px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 15px;
+            background: #080b0f !important;
+            border: 1px solid #1a2332;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .svg-pulse { animation: pulse 2s infinite ease-in-out; }
+        .svg-dash { stroke-dasharray: 8; animation: dash 30s linear infinite; }
+        .svg-bounce { animation: floatBounce 3s infinite ease-in-out; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; filter: drop-shadow(0 0 4px #00e5ff); }
+        }
+        @keyframes dash {
+            to { stroke-dashoffset: -1000; }
+        }
+        @keyframes floatBounce {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+
+        #vault-door-panel {
+            transform-origin: 30px center;
+            transition: transform 1.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        #vault-wheel {
+            transform-origin: 150px 100px;
+            transition: transform 1.2s ease-in-out;
+        }
+        .vault-unlocking #vault-wheel {
+            transform: rotate(280deg);
+        }
+        .vault-unlocking #vault-door-panel {
+            transform: rotateY(-75deg);
+        }
+    </style>
+</head>
+<body>
+
+<div class="vault-banner" onclick="handleBannerClick()">
+    <h1>Escape Room: Código Realidad</h1>
+    <div class="subtitle">Bóveda Matemática de Seguridad Máxima</div>
+</div>
+
+<div class="app-container">
+
+    <div id="game-timer" class="hud-timer" style="display: none;">TIEMPO DE MISIÓN: 00:00</div>
+
+    <div id="scr-intro" class="game-screen active-screen">
+        <div class="card-panel">
+            <div class="stage-illustration">
+                <svg width="200" height="120" viewBox="0 0 200 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="100" cy="60" r="45" stroke="#101827" stroke-width="6"/>
+                    <circle cx="100" cy="60" r="45" stroke="#ff3333" stroke-width="2" class="svg-pulse" stroke-dasharray="4 4"/>
+                    <path d="M75 60H125M100 35V85" stroke="#ff3333" stroke-width="1" opacity="0.4"/>
+                    <rect x="85" y="48" width="30" height="24" rx="3" fill="#12161c" stroke="#ff3333" stroke-width="2"/>
+                    <circle cx="100" cy="54" r="2" fill="#ff3333"/>
+                    <path d="M92 48V44C92 39.5 108 39.5 108 44V48" stroke="#ff3333" stroke-width="2" fill="none"/>
+                </svg>
+            </div>
+            <h2>Mensaje del Diseñador</h2>
+            <p>El maestro de matemáticas Juan Daniel diseñó una bóveda para proteger un premio. La clave completa ha sido dividida en 4 Expedientes de cifrado matemático.</p>
+            <p>Cada expediente representa un desafío basado en funciones lineales, cuadráticas y cúbicas.</p>
+            <p>Los participantes deberán resolver situaciones de la vida real, modeladas matemáticamente, para obtener un dígito del código final. Pero hay un detalle importante: la bóveda solo se abrirá si los cuatro dígitos son obtenidos correctamente y en el orden estructural de los temas.</p>
+            <p><strong>Su misión comienza ahora...</strong></p>
+        </div>
+
+        <div class="card-panel">
+            <h2>Registro de Participantes</h2>
+            <div class="form-group">
+                <label for="reg-names">Nombres de los integrantes del equipo:</label>
+                <input type="text" id="reg-names" placeholder="Ej. Carlos Torres y María Reyes">
+            </div>
+            <button class="btn-action" onclick="initSimulation()">Iniciar Escape Room</button>
+        </div>
+    </div>
+
+    <div id="scr-gameplay" class="game-screen">
+        <div class="card-panel">
+            <h2 id="ui-phase-index">Cargando Fase...</h2>
+            
+            <div id="ui-phase-illustration-container" class="stage-illustration"></div>
+            
+            <div id="ui-phase-text"></div>
+            
+            <div class="form-group" style="margin-top: 25px; border-top: 1px dashed #00e5ff; padding-top: 20px;">
+                <label for="phase-digit-input" style="color: #39ff14;">Ingresa el dígito obtenido en esta fase:</label>
+                <input type="number" id="phase-digit-input" min="0" max="9" placeholder="?">
+                <div id="phase-feedback" class="status-msg"></div>
+            </div>
+        </div>
+        
+        <button class="btn-action" id="btn-next-phase" onclick="advanceWorkflow()">Siguiente Desafío</button>
+    </div>
+
+    <div id="scr-vault" class="game-screen">
+        <div class="card-panel" style="perspective: 1000px;">
+            <h2>Bóveda Principal del Sistema</h2>
+            
+            <div class="stage-illustration" style="height: 180px; background: #07090d !important;">
+                <svg id="vault-graphic-svg" width="300" height="160" viewBox="0 0 300 160" fill="none" xmlns="http://www.w3.org/2000/svg" style="backface-visibility: hidden;">
+                    <rect x="20" y="10" width="260" height="140" rx="10" fill="#111622" stroke="#00e5ff" stroke-width="3"/>
+                    <line x1="20" y1="35" x2="280" y2="35" stroke="#00e5ff" stroke-width="1" stroke-dasharray="4 2"/>
+                    <circle cx="32" cy="22" r="3" fill="#39ff14"/>
+                    <circle cx="45" cy="22" r="3" fill="#00e5ff"/>
+                    
+                    <g id="vault-door-panel">
+                        <rect x="35" y="42" width="230" height="100" rx="6" fill="#182030" stroke="#00e5ff" stroke-width="2"/>
+                        <circle cx="45" cy="52" r="2" fill="#00e5ff" opacity="0.5"/>
+                        <circle cx="255" cy="52" r="2" fill="#00e5ff" opacity="0.5"/>
+                        <circle cx="45" cy="132" r="2" fill="#00e5ff" opacity="0.5"/>
+                        <circle cx="255" cy="132" r="2" fill="#00e5ff" opacity="0.5"/>
+                        
+                        <g id="vault-wheel">
+                            <circle cx="150" cy="92" r="30" fill="#0f131c" stroke="#00e5ff" stroke-width="3"/>
+                            <circle cx="150" cy="92" r="38" fill="none" stroke="#00e5ff" stroke-width="1" stroke-dasharray="6 4"/>
+                            <line x1="150" y1="54" x2="150" y2="130" stroke="#00e5ff" stroke-width="4"/>
+                            <line x1="112" y1="92" x2="188" y2="92" stroke="#00e5ff" stroke-width="4"/>
+                            <line x1="123" y1="65" x2="177" y2="119" stroke="#00e5ff" stroke-width="2"/>
+                            <line x1="123" y1="119" x2="177" y2="65" stroke="#00e5ff" stroke-width="2"/>
+                            <circle cx="150" cy="92" r="8" fill="#39ff14"/>
+                        </g>
+                        <rect id="bolt-left" x="22" y="84" width="15" height="16" fill="#00e5ff" opacity="0.8"/>
+                    </g>
+                </svg>
+            </div>
+
+            <p>Introduzcan la combinación maestra del sistema. El orden jerárquico establecido por el diseñador es: Lineal ➔ Cuadrático ➔ Cúbico ➔ Intersección.</p>
+            
+            <div class="highlight-box">
+                <p style="margin:0; font-weight:bold; color:#00e5ff !important;">Guía Estructural de la Combinación:</p>
+                <table class="info-table">
+                    <thead>
+                        <tr><th>ORDEN</th><th>EXPEDIENTE</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Dígito 1</td><td style="color:#d1d9e6 !important;">Expediente Lineal</td></tr>
+                        <tr><td>Dígito 2</td><td style="color:#d1d9e6 !important;">Expediente Cuadrático</td></tr>
+                        <tr><td>Dígito 3</td><td style="color:#d1d9e6 !important;">Expediente Cúbico</td></tr>
+                        <tr><td>Dígito 4</td><td style="color:#d1d9e6 !important;">Expediente Intersección</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <label>Código de Desbloqueo (4 Dígitos):</label>
+            <div class="vault-grid">
+                <input type="number" class="vault-input" id="v-d1" min="0" max="9" placeholder="0" oninput="moveToNext(this, 'v-d2')">
+                <input type="number" class="vault-input" id="v-d2" min="0" max="9" placeholder="0" oninput="moveToNext(this, 'v-d3')">
+                <input type="number" class="vault-input" id="v-d3" min="0" max="9" placeholder="0" oninput="moveToNext(this, 'v-d4')">
+                <input type="number" class="vault-input" id="v-d4" min="0" max="9" placeholder="0">
+            </div>
+
+            <button class="btn-action" onclick="evaluateVaultUnlock()">Abrir Compuerta</button>
+            <div id="vault-errors" class="status-msg"></div>
+        </div>
+    </div>
+
+    <div id="scr-success" class="game-screen">
+        <div class="card-panel" style="border-color: #39ff14; text-align: center;">
+            <div class="stage-illustration" style="background:#0a0e14 !important; border-color:#39ff14;">
+                <svg width="200" height="120" viewBox="0 0 200 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="100" cy="60" r="40" fill="#14231c" stroke="#39ff14" stroke-width="2"/>
+                    <path d="M85 60L95 70L115 48" stroke="#39ff14" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M60 25L45 35M140 25L155 35M50 95L35 85M150 95L165 85" stroke="#39ff14" stroke-width="2" opacity="0.5" class="svg-pulse"/>
+                </svg>
+            </div>
+            <h2 style="color: #39ff14 !important; border-bottom-color: #39ff14;">¡SISTEMA COMPLETADO!</h2>
+            <p style="font-size: 1.1rem;">La Bóveda de Seguridad se ha abierto correctamente.</p>
+            <div class="highlight-box" style="text-align: left; border-left-color: #00e5ff;">
+                <h3 style="margin-top:0; font-family:'Orbitron'; color:#00e5ff !important;">Datos de Cierre de Misión:</h3>
+                <div id="ui-metrics-output"></div>
+            </div>
+            <p style="font-size:0.8rem; color:#7f8c8d !important;">Los datos han sido enviados automáticamente a la hoja de cálculo del docente.</p>
+        </div>
+    </div>
+
+    <div id="teacher-dashboard" class="card-panel teacher-box" style="display: none;">
+        <h3 style="margin-top:0; color:#00e5ff !important; font-family:'Orbitron';">Panel del Docente (Ranking Local)</h3>
+        <button class="btn-action" style="padding:8px; font-size:0.8rem; border-color:#ff3333; color:#ff3333 !important; margin-bottom:10px;" onclick="purgeTeacherDatabase()">Resetear Historial</button>
+        <div id="teacher-table-target" style="overflow-x:auto;"></div>
+    </div>
+
+</div>
+
+<script>
+    const illustrationsSvg = {
+        phase1: `<svg width="220" height="120" viewBox="0 0 220 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M30 90L90 60L190 30" stroke="#1d293a" stroke-width="4"/>
+                    <path d="M30 90L90 60L190 30" stroke="#00e5ff" stroke-width="2" class="svg-dash"/>
+                    <circle cx="30" cy="90" r="6" fill="#12161c" stroke="#00e5ff" stroke-width="2"/>
+                    <circle cx="90" cy="60" r="6" fill="#12161c" stroke="#00e5ff" stroke-width="2"/>
+                    <circle cx="190" cy="30" r="8" fill="#12161c" stroke="#39ff14" stroke-width="2" class="svg-pulse"/>
+                    <text x="25" y="110" fill="#00e5ff" font-family="Orbitron" font-size="9">Origen (Fija)</text>
+                    <text x="160" y="20" fill="#39ff14" font-family="Orbitron" font-size="9">Destino (RD$400)</text>
+                 </svg>`,
+        phase2: `<svg width="220" height="120" viewBox="0 0 220 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <line x1="20" y1="100" x2="200" y2="100" stroke="#1a2332" stroke-width="2"/>
+                    <line x1="40" y1="20" x2="40" y2="100" stroke="#1a2332" stroke-width="2"/>
+                    <path d="M40 20C70 20 120 40 160 100" stroke="#ff3333" stroke-width="3" stroke-linecap="round"/>
+                    <circle cx="40" cy="20" r="5" fill="#00e5ff"/>
+                    <circle cx="160" cy="100" r="6" fill="#39ff14" class="svg-pulse"/>
+                    <text x="50" y="25" fill="#00e5ff" font-family="Roboto Mono" font-size="9">H(0) = 16m</text>
+                    <text x="145" y="92" fill="#39ff14" font-family="Roboto Mono" font-size="9">Suelo (t, 0)</text>
+                 </svg>`,
+        phase3: `<svg width="220" height="120" viewBox="0 0 220 120" fill="none" xmlns="http://www.w3.org/2000/svg" class="svg-bounce">
+                    <g transform="translate(75, 20)">
+                        <rect x="0" y="30" width="60" height="60" fill="#101726" stroke="#00e5ff" stroke-width="2"/>
+                        <path d="M0 30L25 10H85L60 30Z" fill="#162035" stroke="#00e5ff" stroke-width="2"/>
+                        <path d="M60 30L85 10V70L60 90Z" fill="#0b101d" stroke="#00e5ff" stroke-width="2"/>
+                        <text x="25" y="65" fill="#39ff14" font-family="Orbitron" font-size="12" font-weight="bold">V = x³</text>
+                        <text x="-12" y="65" fill="#00e5ff" font-family="Roboto Mono" font-size="10">x</text>
+                        <text x="30" y="102" fill="#00e5ff" font-family="Roboto Mono" font-size="10">x</text>
+                    </g>
+                 </svg>`,
+        phase4: `<svg width="220" height="120" viewBox="0 0 220 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="110" cy="60" r="45" stroke="#152030" stroke-width="1"/>
+                    <circle cx="110" cy="60" r="25" stroke="#152030" stroke-width="1"/>
+                    <path d="M30 100Q100 20 150 90" stroke="#00e5ff" stroke-width="2" stroke-dasharray="3 3"/>
+                    <line x1="50" y1="20" x2="170" y2="100" stroke="#ff3333" stroke-width="2"/>
+                    <circle cx="106" cy="57" r="5" fill="#39ff14" class="svg-pulse"/>
+                    <text x="115" y="54" fill="#39ff14" font-family="Orbitron" font-size="9" font-weight="bold">P(x, y)</text>
+                 </svg>`
+    };
+
+    const corePhases = [
+        {
+            identity: 1,
+            solution: "6",
+            header: "EXPEDIENTE LINEAL",
+            illustrationKey: "phase1",
+            text: `<p>Un servicio de mensajería cobra una tarifa fija de RD$ 100.00 solo por recibir el paquete, más RD$ 50.00 por cada kilómetro recorrido.</p>
+                   <p>El primer dígito del código es la cantidad de kilómetros que recorrió el repartidor si el costo final fue de RD$ 400.00</p>`
+        },
+        {
+            identity: 2,
+            solution: "4",
+            header: "EXPEDIENTE CUADRÁTICO",
+            illustrationKey: "phase2",
+            text: `<p>En un proyecto de física escolar, los estudiantes dejan un huevo desde la ventana de una cuarta planta. La trayectoria del huevo dibuja una curva cuadrática (una parábola invertida).</p>
+                   <p>Si el huevo es lanzado desde un cuarto piso (a 16 metros de altura) y el huevo sigue la siguiente trayectoria: f(t) = -t<sup>2</sup> + 16</p>
+                   <p>El segundo dígito del código es la suma de las coordenadas del punto donde el huevo toca el suelo.</p>
+                   <p class="highlight-box"><strong>Nota:</strong> Utiliza la raíz positiva.</p>`
+        },
+        {
+            identity: 3,
+            solution: "9",
+            header: "EXPEDIENTE CÚBICO",
+            illustrationKey: "phase3",
+            text: `<p>Un almacén usa cajas cúbicas para guardar materiales.</p>
+                   <p>En el almacén se desea hacer una caja secreta cuyo volumen es igual al cuadrado de 27.</p>
+                   <p>El volumen de una caja depende del lado x (en metros) y está dado por: V(x) = x<sup>3</sup></p>
+                   <p>El tercer dígito del código es la longitud de los lados de la caja secreta.</p>`
+        },
+        {
+            identity: 4,
+            solution: "2",
+            header: "EXPEDIENTE INTERSECCIÓN",
+            illustrationKey: "phase4",
+            text: `<p>Un dron vuela en línea recta, mientras que una pelota de béisbol es lanzada hacia arriba describiendo una trayectoria cuadrática (parábola).</p>
+                   <p>Sabiendo que la ecuación que describe la trayectoria de la pelota es y = -x<sup>2</sup> + 2x y la del dron es y = 2 - x. Determina si la trayectoria de la pelota y el dron se intersectan. Si se intersectan, encuentra los puntos de intersección.</p>
+                   <p class="highlight-box"><strong>Nota:</strong> Si existen dos puntos de intersección, utiliza la solución donde x tiene menor valor absoluto.</p>
+                   <p>El cuarto dígito es la suma de las coordenadas donde la pelota chocó con el dron.</p>`
+        }
+    ];
+
+    let dynamicWorkflow = [];
+    let activeWorkflowIndex = 0;
+    let studentsIdentity = "";
+    let epochStart = 0;
+    let timerClockRef = null;
+
+    function shuffleArray(array) {
+        let shuffled = JSON.parse(JSON.stringify(array));
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        return shuffled;
+    }
+
+    function moveToNext(current, nextId) {
+        if (current.value.length >= 1) {
+            document.getElementById(nextId).focus();
+        }
+    }
+
+    function initSimulation() {
+        studentsIdentity = document.getElementById('reg-names').value.trim();
+        if (!studentsIdentity) {
+            alert("Por favor, ingrese los nombres de los integrantes antes de continuar.");
+            return;
+        }
+
+        dynamicWorkflow = shuffleArray(corePhases);
+        activeWorkflowIndex = 0;
+        epochStart = Date.now();
+
+        document.getElementById('scr-intro').classList.remove('active-screen');
+        document.getElementById('scr-gameplay').classList.add('active-screen');
+        
+        const uiTimer = document.getElementById('game-timer');
+        uiTimer.style.display = 'block';
+
+        let elapsed = 0;
+        clearInterval(timerClockRef);
+        timerClockRef = setInterval(() => {
+            elapsed++;
+            let m = Math.floor(elapsed / 60).toString().padStart(2, '0');
+            let s = (elapsed % 60).toString().padStart(2, '0');
+            uiTimer.innerText = `TIEMPO DE MISIÓN: ${m}:${s}`;
+        }, 1000);
+
+        renderCurrentWorkflowPhase();
+    }
+
+    function renderCurrentWorkflowPhase() {
+        const stageData = dynamicWorkflow[activeWorkflowIndex];
+        
+        document.getElementById('ui-phase-index').innerText = `Desafío ${activeWorkflowIndex + 1} de 4`;
+        document.getElementById('ui-phase-illustration-container').innerHTML = illustrationsSvg[stageData.illustrationKey];
+        document.getElementById('ui-phase-text').innerHTML = `<h3 style='color:#39ff14; font-family:"Orbitron";\'>${stageData.header}</h3>${stageData.text}`;
+        
+        const inputField = document.getElementById('phase-digit-input');
+        inputField.value = "";
+        
+        const feedback = document.getElementById('phase-feedback');
+        feedback.innerText = "";
+        feedback.className = "status-msg";
+
+        const btnNext = document.getElementById('btn-next-phase');
+        if (activeWorkflowIndex === dynamicWorkflow.length - 1) {
+            btnNext.innerText = "Ir a la Bóveda Final";
+        } else {
+            btnNext.innerText = "Siguiente Desafío";
+        }
+    }
+
+    function advanceWorkflow() {
+        const inputField = document.getElementById('phase-digit-input');
+        const digitEvaluated = inputField.value.trim();
+        const feedback = document.getElementById('phase-feedback');
+        
+        const currentCorrectAnswer = dynamicWorkflow[activeWorkflowIndex].solution;
+
+        if (digitEvaluated === "") {
+            feedback.innerText = "Por favor, ingresa un dígito antes de continuar.";
+            feedback.className = "status-msg visible-error";
+            return;
+        }
+
+        if (digitEvaluated === currentCorrectAnswer) {
+            if (activeWorkflowIndex < dynamicWorkflow.length - 1) {
+                activeWorkflowIndex++;
+                renderCurrentWorkflowPhase();
+            } else {
+                document.getElementById('scr-gameplay').classList.remove('active-screen');
+                document.getElementById('scr-vault').classList.add('active-screen');
+            }
+        } else {
+            feedback.innerText = "Incorrecto, intenta de nuevo";
+            feedback.className = "status-msg visible-error";
+        }
+    }
+
+    function evaluateVaultUnlock() {
+        const d1 = document.getElementById('v-d1').value.trim();
+        const d2 = document.getElementById('v-d2').value.trim();
+        const d3 = document.getElementById('v-d3').value.trim();
+        const d4 = document.getElementById('v-d4').value.trim();
+        const errUi = document.getElementById('vault-errors');
+
+        if (!d1 || !d2 || !d3 || !d4) {
+            errUi.innerText = "Error: Debe completar los 4 dígitos.";
+            errUi.className = "status-msg visible-error";
+            return;
+        }
+
+        if (d1 === "6" && d2 === "4" && d3 === "9" && d4 === "2") {
+            const appWrap = document.getElementById('scr-vault');
+            appWrap.classList.add('vault-unlocking');
+            
+            setTimeout(() => {
+                executeSuccessSequence();
+                appWrap.classList.remove('vault-unlocking');
+            }, 1800);
+        } else {
+            errUi.innerText = "CÓDIGO INCORRECTO: Revisa tus cálculos. Los dígitos deben colocarse siguiendo el orden lógico: Lineal, Cuadrático, Cúbico e Intersección.";
+            errUi.className = "status-msg visible-error";
+        }
+    }
+
+    function executeSuccessSequence() {
+        clearInterval(timerClockRef);
+        const epochEnd = Date.now();
+        const deltaMs = epochEnd - epochStart;
+
+        const timestampStr = new Date(epochEnd).toLocaleTimeString('es-DO', { hour12: false });
+        const minutesReadable = (deltaMs / 1000 / 60).toFixed(2);
+
+        document.getElementById('scr-vault').classList.remove('active-screen');
+        document.getElementById('scr-success').classList.add('active-screen');
+        document.getElementById('game-timer').style.color = '#39ff14';
+
+        document.getElementById('ui-metrics-output').innerHTML = `
+            <p><strong>Integrantes:</strong> ${studentsIdentity}</p>
+            <p><strong>Hora de Término:</strong> ${timestampStr}</p>
+            <p><strong>Duración:</strong> ${minutesReadable} min (${deltaMs} ms)</p>
+        `;
+
+        const payload = {
+            user: studentsIdentity,
+            timeLabel: timestampStr,
+            rawMs: deltaMs
+        };
+
+        let currentLeaderboard = JSON.parse(localStorage.getItem('vault_escape_db')) || [];
+        currentLeaderboard.push(payload);
+        currentLeaderboard.sort((a, b) => a.rawMs - b.rawMs);
+        localStorage.setItem('vault_escape_db', JSON.stringify(currentLeaderboard));
+
+        const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbwveYhVTTkW_PMRn1mZa78wptXYuLJZ0M-GkfkXY5EHHVfkLCroIV_QaqK7ucR7XlNj/exec"; 
+
+        const formBody = new URLSearchParams();
+        formBody.append("user", payload.user);
+        formBody.append("timeLabel", payload.timeLabel);
+        formBody.append("rawMs", payload.rawMs);
+
+        fetch(GOOGLE_API_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            cache: 'no-cache',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: formBody.toString()
+        })
+        .then(() => console.log("Reportado con éxito a Google Sheets."))
+        .catch(err => console.error("Error al reportar a la API: ", err));
+    }
+
+    let bannerTouchCounter = 0;
+    function handleBannerClick() {
+        bannerTouchCounter++;
+        if (bannerTouchCounter >= 5) {
+            const panel = document.getElementById('teacher-dashboard');
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+            loadTeacherTableData();
+            bannerTouchCounter = 0;
+        }
+    }
+
+    function purgeTeacherDatabase() {
+        if(confirm("¿Seguro que deseas reiniciar el historial local?")) {
+            localStorage.removeItem('vault_escape_db');
+            loadTeacherTableData();
+        }
+    }
+
+    function loadTeacherTableData() {
+        const records = JSON.parse(localStorage.getItem('vault_escape_db')) || [];
+        const container = document.getElementById('teacher-table-target');
+
+        if (records.length === 0) {
+            container.innerHTML = "<p style='font-size:0.85rem; color:#7f8c8d; text-align:center;'>Sin intentos registrados localmente.</p>";
+            return;
+        }
+
+        let tableHtml = `<table class="info-table" style="text-align:left; font-size:0.8rem;">
+            <thead>
+                <tr>
+                    <th>Lugar</th>
+                    <th>Equipo</th>
+                    <th>Hora</th>
+                    <th>Tiempo (min)</th>
+                </tr>
+            </thead>
+            <tbody>`;
+            
+        records.forEach((row, index) => {
+            tableHtml += `<tr>
+                <td>${index + 1}</td>
+                <td>${row.user}</td>
+                <td>${row.timeLabel}</td>
+                <td>${(row.rawMs / 1000 / 60).toFixed(2)}</td>
+            </tr>`;
+        });
+
+        tableHtml += `</tbody></table>`;
+        container.innerHTML = tableHtml;
+    }
+</script>
+
+</body>
+</html>
